@@ -8,20 +8,23 @@
         <script type="text/babel">
 
             const parseJSON = (xhr, content) => {
-                const jsonParser = JSON.parse(xhr.response);
-                if(jsonParser.message) {
+                //console.dir(xhr);
+                const obj = JSON.parse(xhr.response);
+                console.dir(obj);
+                
+                if(obj.message){
                     const p = document.createElement('p');
-                    p.textContent = `Message: ${jsonParser.message}`;
+                    p.textContent = `Message: ${obj.message}`;
                     content.appendChild(p);
                 }
-
-                if(jsonParser.users) {
+                
+                if(obj.users){
                     const userList = document.createElement('p');
-                    const users = JSON.stringify(jsonParser.users);
+                    const users = JSON.stringify(obj.users);
                     userList.textContent = users;
                     content.appendChild(userList);
                 }
-            };
+            }
 
             const handleResponse = (xhr, parseResponse) => {
                 const content = document.querySelector('#content');
@@ -47,59 +50,57 @@
                         break;
                 }
 
-                if(parseResponse) {
-                    parseJSON(xhr, content);
-                }
+                parseJSON(xhr, content);
             };
 
-            const requestUpdate = (e, userField, formType) => {    
-                const formAction = userField.getAttribute('action');
-                const formMethod = userField.getAttribute('method');
+            const sendPost = (e,addUser) => {
+                const action = addUser.getAttribute('action');
+                const method = addUser.getAttribute('method');
+                const name = addUser.querySelector('#nameField');
+                const age = addUser.querySelector('#ageField');
+                
                 const xhr = new XMLHttpRequest();
                 
-                if(formType === 'post') {
-                    xhr.open(formMethod, formAction);
-                } else {
-                    xhr.open(form.querySelector('#methodSelect').value, userField.querySelector('#urlField').value);
-                }
-
+                xhr.open(method,action);
                 xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                xhr.setRequestHeader ('Accept', 'application/json');
-
-                if(formType === 'post') {
-                    xhr.onload = () => handleResponse(xhr, true);
-                    const nameField = userField.querySelector('#nameField');
-                    const ageField = userField.querySelector('#ageField');
-                    const userData = `name=${nameField.value}&age=${ageField.value}`;
-                    xhr.send(userData);
-                    e.preventDefault();
-                    return false;
-                } else if(formType === 'get') {
-                    if(userField.querySelector('#methodSelect').value === formType) {
-                        xhr.onload = () => handleResponse(xhr, true);
-                    } else {
-                        xhr.onload = () => handleResponse(xhr, false);
-                    }
-                    
-                    const nameField = userField.querySelector('#urlForm');
-                    const ageField = userField.querySelector('#methodSelect');
-                    const userData = `url=${nameField.value}&method=${ageField.value}`;
-                    xhr.send(userData);
-                    e.preventDefault();
-                    return false;
-                }    
-            };
-
-            const init = () => {
-                const userField = document.querySelector('#userForm');
-                const getUsers = (e) => requestUpdate(e, userForm, 'get');
-                userForm.addEventListener('submit', getUsers);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.onload = () => handleResponse(xhr);
+                const formData = `name=${name.value}&age=${age.value}`;
+                xhr.send(formData);
                 
-                const nameForm = document.querySelector('#nameForm');
-                const addUser = (e) => requestUpdate(e, nameForm, 'post');
-                nameForm.addEventListener('submit', addUser);
-            };
-
+                e.preventDefault();
+                return false;
+            }
+            
+            const sendGet = (e,getUsers) => {
+                const action = getUsers.getAttribute('action');
+                const method = getUsers.getAttribute('method');
+                const methodSelect = document.querySelector('#methodSelect');
+                const urlField = document.querySelector('#urlField');
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open(methodSelect.value,urlField.value);
+                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.onload = () => handleResponse(xhr);
+                
+                //console.dir(xhr);
+                xhr.send();
+                e.preventDefault();
+                return false;
+            }
+            
+            const init = () => {
+                const addForm = document.querySelector('#nameForm');
+                const getForm = document.querySelector('#userForm');
+                
+                const addUser = (e) => {sendPost(e,addForm)};
+                const getUsers = (e) => {sendGet(e,getForm)};
+                
+                addForm.addEventListener('submit',addUser);
+                getForm.addEventListener('submit',getUsers);
+            }
+            
             window.onload = init;
 
         </script>

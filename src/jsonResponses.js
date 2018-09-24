@@ -1,11 +1,8 @@
 const users = {};
-const respondJSON = (request, response, status, object) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
 
-    // send response with json object
-  response.writeHead(status, headers);
+const respondJSON = (request, response, status, object) => {
+  // send response with json object
+  response.writeHead(status, { 'Content-Type': 'application/json' });
   response.write(JSON.stringify(object));
   response.end();
 };
@@ -13,17 +10,20 @@ const respondJSON = (request, response, status, object) => {
 // function to respond without json body
 // takes request, response and status code
 const respondJSONMeta = (request, response, status) => {
-  // object for our headers
-  // Content-Type for json
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-    // send response without json object, just headers
-  response.writeHead(status, headers);
+  // send response without json object, just headers
+  response.writeHead(status, { 'Content-Type': 'application/json' });
   response.end();
 };
 
+// function to show not found error
+const notFound = (request, response) => {
+  const responseJSON = {
+    message: 'The page you are looking for was not found.',
+    id: 'notFound',
+  };
+
+  return respondJSON(request, response, 404, responseJSON);
+};
 // get user object
 // should calculate a 200
 const getUsers = (request, response) => {
@@ -36,66 +36,51 @@ const getUsers = (request, response) => {
   return respondJSON(request, response, 200, responseJSON);
 };
 
+// get user object
+// should calculate a 200
+const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
+
+/*
 // get meta info about user object
 // should calculate a 200
 const getUsersMeta = (request, response) =>
 // return 200 without message, just the meta data
-  respondJSONMeta(request, response, 200)
+respondJSONMeta(request, response, 200)
 ;
+*/
 
 // function just to update our object
-const updateUser = (request, response, userParams) => {
-  // modifying our dummy object
-  // just indexing by time for now
-  users[userParams.name].age = userParams.age;
+const addUser = (request, response, body) => {
+  const responseJSON = { message: 'Name and age are both required.' };
 
-  // return a 201 created status
-  return respondJSON(request, response, 204);
-};
-
-// function for 404 not found requests with message
-const notFound = (request, response) => {
-  // create error message for response
-  const responseJSON = {
-    message: 'The page you are looking for was not found.',
-    id: 'notFound',
-  };
-
-    // return a 404 with an error message
-  respondJSON(request, response, 404, responseJSON);
-};
-
-// function just to update our object
-const addUser = (request, response, userParams) => {
-  if (!userParams.name || !userParams.age) {
-    const responseJSON = {
-      message: 'Name and age are both required.',
-    };
-
+  if (!body.name || !body.age) {
     responseJSON.id = 'missingParams';
     return respondJSON(request, response, 400, responseJSON);
   }
 
-  if (users[userParams.name]) {
-    updateUser(request, response, userParams);
-  } else {
-    const newUser = {
-      name: userParams.name,
-      age: userParams.age,
+  if (!users[body.name]) {
+    console.dir('making account');
+    const status = 201;
+
+    users[body.name] = {
+      name: body.name,
+      age: body.age,
     };
 
-    users[userParams.name] = newUser;
-
-    // return a 201 created status
-    return respondJSON(request, response, 201, newUser);
+    responseJSON.message = 'Created Successfully';
+    return respondJSON(request, response, status, responseJSON);
   }
+  console.dir('updating account');
+  const status = 204;
+  users[body.name].age = body.age;
+  responseJSON.message = 'Updated Successfully';
 
-  return notFound(request, response);
+  return respondJSON(request, response, status, {});
 };
 
 // function for 404 not found without message
 const notFoundMeta = (request, response) => {
-  // return a 404 without an error message
+// return a 404 without an error message
   respondJSONMeta(request, response, 404);
 };
 
@@ -103,8 +88,7 @@ const notFoundMeta = (request, response) => {
 module.exports = {
   addUser,
   getUsers,
-  getUsersMeta,
-  updateUser,
   notFound,
+  getUsersMeta,
   notFoundMeta,
 };
