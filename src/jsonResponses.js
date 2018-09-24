@@ -36,18 +36,9 @@ const getUsers = (request, response) => {
   return respondJSON(request, response, 200, responseJSON);
 };
 
-// get user object
+// get meta user object
 // should calculate a 200
 const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
-
-/*
-// get meta info about user object
-// should calculate a 200
-const getUsersMeta = (request, response) =>
-// return 200 without message, just the meta data
-respondJSONMeta(request, response, 200)
-;
-*/
 
 // function just to update our object
 const addUser = (request, response, body) => {
@@ -63,19 +54,21 @@ const addUser = (request, response, body) => {
     const status = 201;
 
     users[body.name] = {
-      name: body.name,
-      age: body.age,
+        name: body.name,
+        age: body.age,
     };
 
     responseJSON.message = 'Created Successfully';
     return respondJSON(request, response, status, responseJSON);
+      
+  } else {
+    console.dir('updating account');
+    const status = 204;
+    users[body.name].age = body.age;
+      
+    responseJSON.message = 'Updated Successfully';
+    return respondJSON(request, response, status, {});
   }
-  console.dir('updating account');
-  const status = 204;
-  users[body.name].age = body.age;
-  responseJSON.message = 'Updated Successfully';
-
-  return respondJSON(request, response, status, {});
 };
 
 // function for 404 not found without message
