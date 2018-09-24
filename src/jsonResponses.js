@@ -44,19 +44,13 @@ const getUsersMeta = (request, response) =>
 ;
 
 // function just to update our object
-const updateUser = (request, response) => {
-  // change to make to user
-  // This is just a dummy object for example
-  const newUser = {
-    createdAt: Date.now(),
-  };
-
-    // modifying our dummy object
-    // just indexing by time for now
-  users[newUser.createdAt] = newUser;
+const updateUser = (request, response, userParams) => {
+  // modifying our dummy object
+  // just indexing by time for now
+  users[userParams.name].age = userParams.age;
 
   // return a 201 created status
-  return respondJSON(request, response, 201, newUser);
+  return respondJSON(request, response, 204);
 };
 
 // function for 404 not found requests with message
@@ -71,6 +65,34 @@ const notFound = (request, response) => {
   respondJSON(request, response, 404, responseJSON);
 };
 
+// function just to update our object
+const addUser = (request, response, userParams) => {
+  if (!userParams.name || !userParams.age) {
+    const responseJSON = {
+      message: 'Name and age are both required.',
+    };
+
+    responseJSON.id = 'missingParams';
+    return respondJSON(request, response, 400, responseJSON);
+  }
+
+  if (users[userParams.name]) {
+    updateUser(request, response, userParams);
+  } else {
+    const newUser = {
+      name: userParams.name,
+      age: userParams.age,
+    };
+
+    users[userParams.name] = newUser;
+
+    // return a 201 created status
+    return respondJSON(request, response, 201, newUser);
+  }
+
+  return notFound(request, response);
+};
+
 // function for 404 not found without message
 const notFoundMeta = (request, response) => {
   // return a 404 without an error message
@@ -79,6 +101,7 @@ const notFoundMeta = (request, response) => {
 
 // set public modules
 module.exports = {
+  addUser,
   getUsers,
   getUsersMeta,
   updateUser,

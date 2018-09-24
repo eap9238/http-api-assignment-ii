@@ -5,6 +5,31 @@ const jsonHandler = require('./jsonResponses.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
+/*
+// function to handle posts
+const handlePost = (request, response, parsedUrl) => {
+  if (parsedUrl.pathname === '/addUser') {
+    const res = response;
+    const body = [];
+
+    request.on('error', (err) => {
+      console.dir(err);
+      res.statusCode = 400;
+      res.end();
+    });
+
+    request.on('data', (chunk) => {
+      body.push(chunk);
+    });
+
+    request.on('end', () => {
+      const userString = Buffer.concat(body).toString();
+      const userParams = query.parse(userString);
+      jsonHandler.addUser(request, res, userParams);
+    });
+  }
+}; */
+
 // function to handle requests
 const onRequest = (request, response) => {
   // parse url into individual parts
@@ -23,9 +48,9 @@ const onRequest = (request, response) => {
       } else if (parsedUrl.pathname === '/getUsers') {
         // if get users, send user object back
         jsonHandler.getUsers(request, response);
-      } else if (parsedUrl.pathname === '/updateUser') {
+      } else if (parsedUrl.pathname === '/addUser') {
         // if update user, change our user object
-        jsonHandler.updateUser(request, response);
+        jsonHandler.addUser(request, response);
       } else {
         // if not found, send 404 message
         jsonHandler.notFound(request, response);
@@ -39,6 +64,16 @@ const onRequest = (request, response) => {
       } else {
         // if not found send 404 without body
         jsonHandler.notFoundMeta(request, response);
+      }
+      break;
+
+    case 'POST':
+      if (parsedUrl.pathname === '/addUser') {
+        // if update user, change our user object
+        jsonHandler.addUser(request, response, parsedUrl);
+      } else {
+        // if not found, send 404 message
+        jsonHandler.notFound(request, response);
       }
       break;
 

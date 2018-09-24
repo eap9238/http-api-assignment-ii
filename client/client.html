@@ -6,8 +6,26 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
         <script type="text/babel">
+
+            const parseJSON = (xhr, content) => {
+                const jsonParser = JSON.parse(xhr.response);
+                if(jsonParser.message) {
+                    const p = document.createElement('p');
+                    p.textContent = `Message: ${jsonParser.message}`;
+                    content.appendChild(p);
+                }
+
+                if(jsonParser.users) {
+                    const userList = document.createElement('p');
+                    const users = JSON.stringify(jsonParser.users);
+                    userList.textContent = users;
+                    content.appendChild(userList);
+                }
+            };
+
             const handleResponse = (xhr, parseResponse) => {
                 const content = document.querySelector('#content');
+                
                 switch(xhr.status) {
                     case 200: //if success
                         content.innerHTML = `<b>Success</b>`;
@@ -29,64 +47,61 @@
                         break;
                 }
 
-                //if we are expecting a response body (not in a head request)
                 if(parseResponse) {
-                    //parse the object and print it
-                    const obj = JSON.parse(xhr.response);
-                    console.dir(obj);
-                } else {
-                    console.log('received');
+                    parseJSON(xhr, content);
                 }
             };
 
-            //function to send request
-            const requestUpdate = (e, userForm) => {
-                //grab url field 
-                const url = userForm.querySelector('#urlField').value;
-                //grab method selected
-                const method = userForm.querySelector('#methodSelect').value;
-
-                //create a new AJAX request (asynchronous)
+            const requestUpdate = (e, userField, formType) => {    
+                const formAction = userField.getAttribute('action');
+                const formMethod = userField.getAttribute('method');
                 const xhr = new XMLHttpRequest();
-                //setup connect using the selected method and url
-                xhr.open(method, url);
-                //set accept header in request to application/json
-                //The accept header is a comma separated list of
-                //accepted response types in order of preference
-                //from first to last. You only need to send one
-                //but you can send many, separated by commas.
-                xhr.setRequestHeader('Accept', 'application/json');
-                //if get request or head request
-                if(method == 'get') {
-                    //set onload to parse request and get json message
-                    xhr.onload = () => handleResponse(xhr, true);
+                
+                if(formType === 'post') {
+                    xhr.open(formMethod, formAction);
                 } else {
-                    //set onload to check meta data and NOT message
-                    //There are no body responses in a head request
-                    xhr.onload = () => handleResponse(xhr, false);
+                    xhr.open(form.querySelector('#methodSelect').value, userField.querySelector('#urlField').value);
                 }
 
-                //send ajax request
-                xhr.send();
+                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader ('Accept', 'application/json');
 
-                //cancel browser's default action
-                e.preventDefault();
-                //return false to prevent page redirection from a form
-                return false;
+                if(formType === 'post') {
+                    xhr.onload = () => handleResponse(xhr, true);
+                    const nameField = userField.querySelector('#nameField');
+                    const ageField = userField.querySelector('#ageField');
+                    const userData = `name=${nameField.value}&age=${ageField.value}`;
+                    xhr.send(userData);
+                    e.preventDefault();
+                    return false;
+                } else if(formType === 'get') {
+                    if(userField.querySelector('#methodSelect').value === formType) {
+                        xhr.onload = () => handleResponse(xhr, true);
+                    } else {
+                        xhr.onload = () => handleResponse(xhr, false);
+                    }
+                    
+                    const nameField = userField.querySelector('#urlForm');
+                    const ageField = userField.querySelector('#methodSelect');
+                    const userData = `url=${nameField.value}&method=${ageField.value}`;
+                    xhr.send(userData);
+                    e.preventDefault();
+                    return false;
+                }    
             };
 
             const init = () => {
-                //grab form
-                const userForm = document.querySelector('#userForm');
-
-                //function to handle our request
-                const getUsers = (e) => requestUpdate(e, userForm);
-
-                //add event listener
+                const userField = document.querySelector('#userForm');
+                const getUsers = (e) => requestUpdate(e, userForm, 'get');
                 userForm.addEventListener('submit', getUsers);
+                
+                const nameForm = document.querySelector('#nameForm');
+                const addUser = (e) => requestUpdate(e, nameForm, 'post');
+                nameForm.addEventListener('submit', addUser);
             };
 
             window.onload = init;
+
         </script>
     </head>
     
