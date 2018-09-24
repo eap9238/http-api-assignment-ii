@@ -67,7 +67,8 @@ const addUser = (request, response, body) => {
     users[body.name].age = body.age;
       
     responseJSON.message = 'Updated Successfully';
-    return respondJSON(request, response, status, {});
+      
+    return respondJSON(request, response, status, responseJSON);
   }
 };
 
