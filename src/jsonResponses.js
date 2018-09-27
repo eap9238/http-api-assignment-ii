@@ -50,26 +50,24 @@ const addUser = (request, response, body) => {
   }
 
   if (!users[body.name]) {
-    console.dir('making account');
+    //console.dir('making account');
     const status = 201;
 
     users[body.name] = {
-        name: body.name,
-        age: body.age,
+      name: body.name,
+      age: body.age,
     };
 
     responseJSON.message = 'Created Successfully';
     return respondJSON(request, response, status, responseJSON);
-      
-  } else {
-    console.dir('updating account');
-    const status = 204;
-    users[body.name].age = body.age;
-      
-    responseJSON.message = 'Updated Successfully';
-      
-    return respondJSON(request, response, status, responseJSON);
   }
+  //console.dir('updating account');
+  const status = 204;
+  users[body.name].age = body.age;
+
+  responseJSON.message = 'Updated Successfully';
+
+  return respondJSON(request, response, status, responseJSON);
 };
 
 // function for 404 not found without message
